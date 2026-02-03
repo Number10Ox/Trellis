@@ -1,14 +1,52 @@
 # Trellis
 
-A lightweight Unity game framework providing three core subsystems: a generic trigger-based state machine, a deterministic system scheduler, and a GameObject object pool.
+A lightweight Unity game framework providing architectural primitives for state management, system scheduling, object pooling, reactive data flow, UI management, and application infrastructure. Built on VContainer for dependency injection.
 
 ## Subsystems
 
-| Subsystem | Namespace | Purpose |
-|-----------|-----------|---------|
-| **State Machine** | `Trellis.StateMachine` | Generic trigger-based state machine with transition tables, Enter/Exit/Tick lifecycle, and deferred trigger resolution. |
-| **Scheduling** | `Trellis.Scheduling` | Ordered system execution with deterministic tick order. Systems implement `ISystem` and are ticked sequentially. |
-| **Pooling** | `Trellis.Pooling` | Stack-based GameObject pool with pre-allocation, IPoolable lifecycle callbacks, and per-instance component caching. |
+| Tier | Subsystem | Namespace | Status |
+|------|-----------|-----------|--------|
+| **Core** | State Machine | `Trellis.StateMachine` | Implemented |
+| **Core** | Hierarchical State Machine | `Trellis.StateMachine` | Planned |
+| **Core** | System Scheduler | `Trellis.Scheduling` | Implemented |
+| **Core** | Object Pooling | `Trellis.Pooling` | Implemented |
+| **Core** | Event Bus | `Trellis.Events` | Planned |
+| **Core** | Reactive Properties | `Trellis.Reactive` | Planned |
+| **Core** | State Store | `Trellis.Stores` | Planned |
+| **UI** | UI Router | `Trellis.UI` | Planned |
+| **UI** | Panel Manager | `Trellis.UI` | Planned |
+| **UI** | Popup System | `Trellis.UI` | Planned |
+| **UI** | Toast / Notification | `Trellis.UI` | Planned |
+| **App** | App Lifecycle | `Trellis.App` | Planned |
+| **App** | Scene Manager | `Trellis.Scenes` | Planned |
+| **App** | Structured Logger | `Trellis.Logging` | Planned |
+| **App** | Debug Overlay | `Trellis.Debug` | Planned |
+| **Data** | Definition System | `Trellis.Data` | Planned |
+| **Data** | Save System | `Trellis.Data` | Planned |
+| **Data** | Timers | `Trellis.Timing` | Planned |
+
+## Architecture
+
+Trellis follows a FLUX-inspired unidirectional data flow pattern:
+
+```
+User Input → StoreActions<T> → Store<T> → Observable<T> → UI Panels / Systems
+```
+
+- **VContainer** provides dependency injection — no singletons, no service locators
+- **Stores** are the single source of truth, modified only through actions
+- **Observable\<T\>** properties notify subscribers reactively
+- **EventBus** handles decoupled system-to-system communication
+- **UI Toolkit** native for all framework UI (router, panels, popups, toasts)
+
+## Assembly Structure
+
+```
+Trellis.Runtime.asmdef          → VContainer dependency
+Trellis.Netcode.asmdef          → Trellis.Runtime + Unity.Netcode.Runtime
+Trellis.Tests.Editor.asmdef     → Edit Mode tests (pure C#, fast)
+Trellis.Tests.Netcode.asmdef    → Play Mode tests (network)
+```
 
 ## Importing into Your Project
 
@@ -22,7 +60,7 @@ Add to your project's `Packages/manifest.json`:
 }
 ```
 
-The `Trellis.Runtime` assembly is auto-referenced, so all Trellis types are immediately available in your scripts.
+The `Trellis.Runtime` assembly is auto-referenced. Ensure VContainer is also installed in your project.
 
 ## Repository Structure
 
@@ -30,6 +68,7 @@ The `Trellis.Runtime` assembly is auto-referenced, so all Trellis types are imme
 Trellis/              # Unity package (com.trellis.framework)
   Runtime/            # Framework code
   Tests/Editor/       # Edit Mode tests
+  Tests/Netcode/      # Play Mode tests (future)
 Trellis-Starter/      # Demo Unity project consuming the package
 Docs/                 # Design documentation
 ```
@@ -69,8 +108,9 @@ Open `Trellis-Starter` in Unity 6000.3.5f1, then: Window > General > Test Runner
 
 ## Documentation
 
-- [Technical Design Document](Docs/TDD.md)
-- [Architecture Diagrams](Docs/Architecture-Diagrams.md)
+- [Technical Design Document](Docs/TDD.md) — Full architecture, subsystem design, and deliverables
+- [Architecture Diagrams](Docs/Architecture-Diagrams.md) — Mermaid diagrams for all subsystems
+- [CU-Client Pain Points](Docs/CU-Client-Pain-Points.md) — Problems Trellis is designed to solve
 
 ## Target Unity Version
 
