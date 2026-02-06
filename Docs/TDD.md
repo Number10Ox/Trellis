@@ -104,7 +104,7 @@ A trigger-based state machine parameterized on two enum types: `TState` (state i
 
 #### 2.2 Hierarchical State Machine (`Trellis.StateMachine`)
 
-**Status:** New
+**Status:** Implemented
 
 Extends the flat state machine with nested sub-states. A parent state can contain its own `StateMachine<TState, TTrigger>` as a child, enabling complex flow control without a single massive state graph.
 
@@ -151,7 +151,7 @@ A stack-based pre-allocated pool for GameObjects with per-instance `IPoolable` c
 
 #### 2.5 Event Bus (`Trellis.Events`)
 
-**Status:** New
+**Status:** Implemented
 
 A typed, zero-allocation (when possible) event bus for decoupled communication between systems.
 
@@ -169,7 +169,7 @@ A typed, zero-allocation (when possible) event bus for decoupled communication b
 
 #### 2.6 Reactive Properties (`Trellis.Reactive`)
 
-**Status:** New
+**Status:** Implemented
 
 Observable value wrappers that notify subscribers when their value changes. The core primitive for FLUX-inspired data binding.
 
@@ -186,7 +186,7 @@ Observable value wrappers that notify subscribers when their value changes. The 
 
 #### 2.7 State Store (`Trellis.Stores`)
 
-**Status:** New
+**Status:** Implemented
 
 FLUX-inspired typed data stores that serve as the single source of truth for application state.
 
@@ -321,7 +321,7 @@ Scene loading with VContainer scope management and loading state tracking.
 
 #### 2.14 Structured Logger (`Trellis.Logging`)
 
-**Status:** New (elevated priority — user explicitly requested)
+**Status:** Implemented
 
 A tagged, filterable logging system that replaces raw `Debug.Log` usage.
 
@@ -391,7 +391,7 @@ Serialization and persistence of game state.
 
 #### 2.18 Timers (`Trellis.Timing`)
 
-**Status:** New
+**Status:** Implemented
 
 Lightweight timer utilities for delayed and repeating actions.
 

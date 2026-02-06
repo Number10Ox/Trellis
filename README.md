@@ -7,23 +7,23 @@ A lightweight Unity game framework providing architectural primitives for state 
 | Tier | Subsystem | Namespace | Status |
 |------|-----------|-----------|--------|
 | **Core** | State Machine | `Trellis.StateMachine` | Implemented |
-| **Core** | Hierarchical State Machine | `Trellis.StateMachine` | Planned |
+| **Core** | Hierarchical State Machine | `Trellis.StateMachine` | Implemented |
 | **Core** | System Scheduler | `Trellis.Scheduling` | Implemented |
 | **Core** | Object Pooling | `Trellis.Pooling` | Implemented |
-| **Core** | Event Bus | `Trellis.Events` | Planned |
-| **Core** | Reactive Properties | `Trellis.Reactive` | Planned |
-| **Core** | State Store | `Trellis.Stores` | Planned |
+| **Core** | Event Bus | `Trellis.Events` | Implemented |
+| **Core** | Reactive Properties | `Trellis.Reactive` | Implemented |
+| **Core** | State Store | `Trellis.Stores` | Implemented |
+| **Core** | Timers | `Trellis.Timing` | Implemented |
+| **App** | Structured Logger | `Trellis.Logging` | Implemented |
 | **UI** | UI Router | `Trellis.UI` | Planned |
 | **UI** | Panel Manager | `Trellis.UI` | Planned |
 | **UI** | Popup System | `Trellis.UI` | Planned |
 | **UI** | Toast / Notification | `Trellis.UI` | Planned |
 | **App** | App Lifecycle | `Trellis.App` | Planned |
 | **App** | Scene Manager | `Trellis.Scenes` | Planned |
-| **App** | Structured Logger | `Trellis.Logging` | Planned |
 | **App** | Debug Overlay | `Trellis.Debug` | Planned |
 | **Data** | Definition System | `Trellis.Data` | Planned |
 | **Data** | Save System | `Trellis.Data` | Planned |
-| **Data** | Timers | `Trellis.Timing` | Planned |
 
 ## Architecture
 
