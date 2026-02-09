@@ -9,6 +9,21 @@
 
 At the start of each session, check for and read the following files if they exist:
 - `Docs/TDD.md` -- technical design document with architecture, constraints, and subsystem design
+- `Docs/Architecture-Diagrams.md` -- visual companion with Mermaid diagrams for all subsystems
+
+## Write-Back Before Session End or Context Risk
+
+Context compaction loses in-session details. To survive it, **write back to docs before losing context**:
+
+1. **After every significant change** (deliverable completed, architecture change, new subsystem):
+   - Update `Docs/TDD.md` to reflect architectural changes, new types, or updated constraints
+   - Update `Docs/Architecture-Diagrams.md` if structural changes were made (new classes, changed relationships)
+
+2. **When the user mentions compaction risk** (e.g., "99% context", "running out of context"):
+   - Immediately write back ALL pending state to docs before doing anything else
+   - Prioritize TDD.md (it's the session-start file and single source of truth)
+
+3. **Rule: docs must always be current enough that a fresh session reading only the Session Start files can pick up where we left off.** If something is only in conversation context and not in a doc, it's at risk.
 
 ---
 
