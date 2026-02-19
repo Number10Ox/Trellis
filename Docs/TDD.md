@@ -587,7 +587,7 @@ Trellis/
 │       └── ITimerHandle.cs
 ├── Netcode/
 │   ├── Trellis.Netcode.asmdef            # depends on: Trellis.Runtime, Unity.Netcode.Runtime
-│   └── (future: network-aware stores, synced state, etc.)
+│   └── (future: sparse overlay for server/client truth reconciliation, network-aware stores, synced state)
 └── Tests/
     ├── Editor/
     │   ├── Trellis.Tests.Editor.asmdef    # depends on: Trellis.Runtime
@@ -636,6 +636,27 @@ Each deliverable must include:
 Implementation order builds subsystems incrementally. Each deliverable produces **both framework code AND a Trellis-Starter demo** that exercises it in a tangible, runnable context. The demo validates API design, proves integration works, and provides consumer reference code. A deliverable is not complete until its demo runs.
 
 Dependencies flow forward — later deliverables build on earlier ones.
+
+---
+
+### Future: Sparse Overlay for Networked State
+
+**Status:** TODO — Design and implement as part of `Trellis.Netcode`
+
+In a networked game (e.g., DTACK-Override with Netcode for GameObjects), each client must reconcile **server-authoritative truth** with **client-predicted/local truth**. The planned approach is the **sparse overlay** pattern:
+
+- **Server truth** lives in the canonical `Store<T>` instances, updated via network sync.
+- **Client truth** (predictions, optimistic updates, local-only state) lives in a thin overlay layer that sits on top of server truth.
+- **Reads fall through** — when the overlay has no entry for a given key/field, the read returns the server value. When the overlay has a local override, the local value is returned instead.
+- **Reconciliation** — when the server confirms or rejects a prediction, the overlay entry is removed and the store's server value takes over.
+
+This avoids the alternatives of wrapping every model with server/client pairs or duplicating the entire store layer. The overlay is sparse: only the fields that are currently predicted or locally overridden exist in it, keeping memory and complexity proportional to the amount of active prediction rather than the total state size.
+
+**Key design questions to resolve:**
+- Granularity: per-store overlay vs per-field overlay vs per-key overlay
+- Reconciliation strategy: timestamp-based, sequence-number-based, or server-ack-based
+- Integration with `Observable<T>` — should overlay changes trigger the same notification path?
+- Whether the overlay is visible to UI (reads always go through overlay) or only to systems
 
 ---
 
