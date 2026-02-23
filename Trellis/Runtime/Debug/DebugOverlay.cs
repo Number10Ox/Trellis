@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Trellis.Debug
+namespace Trellis.Debugging
 {
     /// <summary>
     /// Core logic for the debug overlay. Manages sections, commands, and overlay state.

@@ -1,6 +1,6 @@
 using System;
 
-namespace Trellis.Debug
+namespace Trellis.Debugging
 {
     /// <summary>
     /// A registered debug command that can be executed from the debug overlay's command input.

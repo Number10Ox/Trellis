@@ -21,7 +21,7 @@ A lightweight Unity game framework providing architectural primitives for state 
 | **UI** | Toast / Notification | `Trellis.UI` | Planned |
 | **App** | App Lifecycle | `Trellis.App` | Planned |
 | **App** | Scene Manager | `Trellis.Scenes` | Planned |
-| **App** | Debug Overlay | `Trellis.Debug` | Planned |
+| **App** | Debug Overlay | `Trellis.Debugging` | Planned |
 | **Data** | Definition System | `Trellis.Data` | Planned |
 | **Data** | Save System | `Trellis.Data` | Planned |
 

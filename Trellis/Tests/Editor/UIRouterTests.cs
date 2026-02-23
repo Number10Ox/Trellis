@@ -178,7 +178,7 @@ public class UIRouterTests
     [Test]
     public void RegisterRoute_NullRoute_Throws()
     {
-        Assert.Throws<System.ArgumentNullException>(() => router.RegisterRoute(null));
+        Assert.Throws<System.ArgumentNullException>(() => router.RegisterRoute((Route)null));
     }
 
     [Test]

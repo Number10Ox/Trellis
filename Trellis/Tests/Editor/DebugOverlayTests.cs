@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Trellis.Debug;
+using Trellis.Debugging;
 
 public class DebugOverlayTests
 {

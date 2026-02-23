@@ -342,7 +342,7 @@ A tagged, filterable logging system that replaces raw `Debug.Log` usage.
 
 ---
 
-#### 2.15 Debug Overlay (`Trellis.Debug`)
+#### 2.15 Debug Overlay (`Trellis.Debugging`)
 
 **Status:** Implemented (logic). UI Toolkit rendering layer pending.
 

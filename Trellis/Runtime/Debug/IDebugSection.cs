@@ -1,4 +1,4 @@
-namespace Trellis.Debug
+namespace Trellis.Debugging
 {
     /// <summary>
     /// Interface for systems that provide a section in the debug overlay.
