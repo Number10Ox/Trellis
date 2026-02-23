@@ -135,17 +135,17 @@ An ordered array of `ISystem` implementations ticked sequentially each frame.
 
 #### 2.4 Object Pooling (`Trellis.Pooling`)
 
-**Status:** Implemented (single pool). Multi-pool extension planned.
+**Status:** Implemented
 
 A stack-based pre-allocated pool for GameObjects with per-instance `IPoolable` component caching.
 
-**Key types:** `GameObjectPool`, `IPoolable`, `PoolManager` (new)
+**Key types:** `GameObjectPool`, `IPoolable`, `PoolManager`
 
 **Key design decisions:**
 - **Position before activation** — `Acquire(Vector3 position)` sets transform position before calling `OnPoolGet()`, preventing one-frame visual pop.
 - **Cached IPoolable lookup** — `TryGetComponent<IPoolable>` is called once per instance and cached. No per-acquire component lookups.
 - **On-demand growth with warning** — If exhausted, new instances are created with `Debug.LogWarning`.
-- **PoolManager (new)** — A registry of named pools, keyed by prefab or string ID. Consumers request pools by key rather than managing individual `GameObjectPool` instances. Integrates with VContainer for lifecycle management. Provides `ReturnAll()` for clean teardown on scope disposal.
+- **PoolManager** — A registry of named pools, keyed by prefab or string ID. Consumers request pools by key rather than managing individual `GameObjectPool` instances. Integrates with VContainer for lifecycle management. Provides `ReturnAll()` for clean teardown on scope disposal.
 
 ---
 
@@ -223,7 +223,7 @@ public class StoreActions<T>
 
 #### 2.8 UI Router (`Trellis.UI`)
 
-**Status:** New
+**Status:** Implemented (routing logic). UI Toolkit rendering layer pending.
 
 A deep-link-capable router for managing which UI panels are visible, built natively on UI Toolkit.
 
@@ -241,7 +241,7 @@ A deep-link-capable router for managing which UI panels are visible, built nativ
 
 #### 2.9 Panel Manager (`Trellis.UI`)
 
-**Status:** New
+**Status:** Implemented (logic). UI Toolkit rendering layer pending.
 
 Manages the lifecycle and layering of UI Toolkit panels within layout zones.
 
@@ -257,7 +257,7 @@ Manages the lifecycle and layering of UI Toolkit panels within layout zones.
 
 #### 2.10 Popup System (`Trellis.UI`)
 
-**Status:** New
+**Status:** Implemented (logic). UI Toolkit rendering layer pending.
 
 Modal and semi-modal popup management with queue support.
 
@@ -274,7 +274,7 @@ Modal and semi-modal popup management with queue support.
 
 #### 2.11 Toast / Notification (`Trellis.UI`)
 
-**Status:** New
+**Status:** Implemented (logic). UI Toolkit rendering layer pending.
 
 Transient notification messages that auto-dismiss after a configurable duration.
 
@@ -290,32 +290,36 @@ Transient notification messages that auto-dismiss after a configurable duration.
 
 #### 2.12 App Lifecycle (`Trellis.App`)
 
-**Status:** New
+**Status:** Implemented (pure C# core). MonoBehaviour callback wrapper pending.
 
 Application-level lifecycle events and state management.
 
-**Key types:** `AppLifecycleManager`, `AppState`
+**Key types:** `AppLifecycleManager`, `AppState`, `IAppLifecycleAware`, `AppPausedEvent`, `AppResumedEvent`, `AppFocusLostEvent`, `AppFocusGainedEvent`, `AppQuittingEvent`
 
 **Key design decisions:**
-- **Wraps Unity callbacks** — `OnApplicationPause`, `OnApplicationFocus`, `OnApplicationQuit` are surfaced as typed events on the `EventBus` and as `Observable<AppState>`.
-- **Pause/resume hooks** — Systems can register for pause/resume via `IAppLifecycleAware` interface. VContainer can auto-discover implementors.
-- **Clean shutdown** — `AppLifecycleManager` provides an ordered shutdown sequence. Systems implementing `IDisposable` are disposed in reverse-registration order.
+- **Pure C# core with thin MonoBehaviour wrapper** — `AppLifecycleManager` is a plain C# class that receives notifications via `NotifyPause(bool)`, `NotifyFocus(bool)`, `NotifyQuit()`. A separate MonoBehaviour (consumer-provided) calls these from Unity callbacks.
+- **Dual notification** — State changes are surfaced both as typed struct events on the `EventBus` AND as `Observable<AppState>`. Consumers choose their preferred pattern.
+- **IAppLifecycleAware** — Interface for systems that need pause/resume hooks. Systems register/unregister with the manager.
+- **AppState enum** — `Active`, `Paused`, `Unfocused`, `Quitting`. Focus loss while paused does not change state (pause takes priority).
+- **Disposable** — `IDisposable` implementation clears registered systems and stops event dispatch.
 
 ---
 
 #### 2.13 Scene Manager (`Trellis.Scenes`)
 
-**Status:** New
+**Status:** Implemented (pure C# core). Unity SceneManager provider pending.
 
 Scene loading with VContainer scope management and loading state tracking.
 
-**Key types:** `SceneLoader`, `SceneTransition`, `ISceneLoadHandler`
+**Key types:** `SceneLoader`, `SceneTransition`, `ISceneLoadHandler`, `ISceneLoadProvider`, `SceneLoadedEvent`, `SceneUnloadedEvent`
 
 **Key design decisions:**
-- **Additive loading by default** — Scenes load additively. The "base" scene (containing the root VContainer scope) persists. Gameplay scenes load/unload on top.
-- **VContainer scope per scene** — Each loaded scene gets its own `LifetimeScope` (child of the root scope). Unloading a scene disposes its scope, tearing down all scene-specific registrations.
-- **ILoadObject\<float\> progress** — Scene load progress is tracked as an `ILoadObject<float>` (0.0 to 1.0), enabling UI binding to loading screens.
-- **Transition support** — `SceneTransition` describes the load sequence: scenes to unload, scenes to load, optional transition animation (fade, etc.).
+- **Pure C# core with provider interface** — `SceneLoader` orchestrates transitions. Actual scene loading is delegated to `ISceneLoadProvider`, which wraps Unity's `SceneManager.LoadSceneAsync`. This makes the orchestration logic fully testable.
+- **Additive loading by default** — Scenes load additively. The "base" scene persists. Gameplay scenes load/unload on top.
+- **Observable progress** — Load progress tracked as `Observable<float>` (0.0 to 1.0) via `ReadOnlyObservable<float> LoadProgress`. Multi-scene transitions weight progress across scenes.
+- **Transition support** — `SceneTransition` describes the load sequence: scenes to unload then scenes to load. Static factory methods `Load()` and `Switch()` for common patterns.
+- **Handler interface** — `ISceneLoadHandler` receives `OnSceneLoaded` and `OnSceneUnloading` callbacks. Registered handlers are notified in addition to EventBus events.
+- **Guard against concurrent loads** — `LoadScene` and `ExecuteTransition` throw if a load is already in progress. One transition at a time.
 
 ---
 
@@ -340,7 +344,7 @@ A tagged, filterable logging system that replaces raw `Debug.Log` usage.
 
 #### 2.15 Debug Overlay (`Trellis.Debug`)
 
-**Status:** New
+**Status:** Implemented (logic). UI Toolkit rendering layer pending.
 
 An in-game debug panel for runtime inspection and control.
 
@@ -357,16 +361,17 @@ An in-game debug panel for runtime inspection and control.
 
 #### 2.16 Definition System (`Trellis.Data`)
 
-**Status:** New
+**Status:** Implemented
 
 A type-safe registry for ScriptableObject-based game definitions (items, characters, abilities, etc.).
 
-**Key types:** `DefinitionRegistry<TKey, TDef>`, `IDefinitionSource<TDef>`
+**Key types:** `DefinitionRegistry<TKey, TDef>`, `DefinitionRegistryBuilder<TKey, TDef>`, `IDefinitionSource<TDef>`
 
 **Key design decisions:**
 - **Generic registry** — `DefinitionRegistry<TKey, TDef>` maps a key (typically an enum or string ID) to a definition struct/class. Definitions are immutable after loading.
-- **IDefinitionSource\<TDef\>** — Interface for loading definitions from different sources (ScriptableObjects, Addressables, JSON). The registry doesn't care where data comes from.
-- **Dictionary-based lookup** — `TryGet(TKey key, out TDef definition)` pattern. O(1) lookup by key.
+- **IDefinitionSource\<TDef\>** — Interface for loading definitions from different sources (ScriptableObjects, Addressables, JSON). The registry doesn't care where data comes from. Source populates a `List<TDef>` — no IEnumerable.
+- **Builder pattern** — `DefinitionRegistryBuilder<TKey, TDef>` takes a key-extraction function (`Func<TDef, TKey>`), validates uniqueness, and produces the immutable registry. Builder is single-use (cannot build twice).
+- **Dictionary-based lookup** — `TryGet(TKey key, out TDef definition)` pattern. O(1) lookup by key. Also `Get()` (throws), `Contains()`, `CopyKeysTo()`, `CopyValuesTo()`.
 - **Built once at bootstrap** — Like MorlocsTowerDefense's `TurretTypeDirectoryBuilder` pattern. A builder validates and constructs the immutable registry. Runtime code only reads.
 - **No Addressables dependency** — The definition system provides interfaces. Addressables loading is implemented by the consuming project via `IDefinitionSource<TDef>`.
 
@@ -374,18 +379,19 @@ A type-safe registry for ScriptableObject-based game definitions (items, charact
 
 #### 2.17 Save System (`Trellis.Data`)
 
-**Status:** New
+**Status:** Implemented
 
 Serialization and persistence of game state.
 
-**Key types:** `SaveManager`, `ISaveSerializer`, `SaveSlot`
+**Key types:** `SaveManager`, `ISaveSerializer`, `JsonSaveSerializer`, `SaveSlot`, `ISaveable`, `ISaveStorage`
 
 **Key design decisions:**
-- **Slot-based** — Multiple save slots supported. Each slot is a named container for serialized data.
-- **ISaveSerializer** — Pluggable serialization. Default: JSON via `JsonUtility`. Consumers can provide MessagePack, binary, or custom serializers.
-- **Async I/O** — Save/load operations are async (`Task<T>` or `UniTask<T>`). Progress tracked via `ILoadObject<T>`.
-- **Store integration** — `SaveManager` can snapshot store state and restore it. Stores implement `ISaveable<T>` to participate in save/load.
-- **Platform-agnostic** — Uses `Application.persistentDataPath` by default. Storage backend is pluggable for platform-specific implementations (cloud saves, etc.).
+- **Slot-based** — Multiple save slots supported. Each slot is a named container mapping save keys to serialized byte arrays.
+- **ISaveSerializer** — Pluggable serialization. Default: `JsonSaveSerializer` using `JsonUtility`. Consumers can provide MessagePack, binary, or custom serializers.
+- **ISaveStorage** — Pluggable storage backend abstraction (`Exists`, `Write`, `Read`, `Delete`). Default implementation uses file system. Consumers provide platform-specific implementations (cloud saves, etc.).
+- **ISaveable** — Interface for stores/systems that participate in save/load. Declares a `SaveKey`, `CaptureState()`, and `RestoreState(object)`. SaveManager registers saveables and coordinates bulk save/load.
+- **Synchronous core** — Save/load operations are synchronous at the core level. Async wrappers can be layered by consuming projects or via future `ILoadObject<T>` integration.
+- **Platform-agnostic** — Storage is behind `ISaveStorage` interface. No direct `Application.persistentDataPath` dependency in the framework.
 
 ---
 
@@ -561,11 +567,13 @@ Trellis/
 │   │   └── ToastRequest.cs
 │   ├── App/
 │   │   ├── AppLifecycleManager.cs
-│   │   └── AppState.cs
+│   │   ├── AppState.cs
+│   │   └── IAppLifecycleAware.cs
 │   ├── Scenes/
 │   │   ├── SceneLoader.cs
 │   │   ├── SceneTransition.cs
-│   │   └── ISceneLoadHandler.cs
+│   │   ├── ISceneLoadHandler.cs
+│   │   └── ISceneLoadProvider.cs
 │   ├── Logging/
 │   │   ├── TrellisLogger.cs
 │   │   ├── LogTag.cs
@@ -580,6 +588,9 @@ Trellis/
 │   │   ├── IDefinitionSource.cs
 │   │   ├── SaveManager.cs
 │   │   ├── ISaveSerializer.cs
+│   │   ├── JsonSaveSerializer.cs
+│   │   ├── ISaveStorage.cs
+│   │   ├── ISaveable.cs
 │   │   └── SaveSlot.cs
 │   └── Timing/
 │       ├── Timer.cs

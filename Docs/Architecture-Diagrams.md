@@ -761,3 +761,167 @@ flowchart TD
 **Critical path:** D1 → D3 → D4 → D9/D10 (foundation → events+reactive → stores → app infrastructure)
 
 **Parallelizable after D1:** D2, D3, D5, D6 can all proceed in parallel once VContainer integration is done. Each produces its own standalone demo.
+
+---
+
+## App Lifecycle State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active : Construction
+
+    Active --> Paused : NotifyPause(true)
+    Paused --> Active : NotifyPause(false)
+
+    Active --> Unfocused : NotifyFocus(false)
+    Unfocused --> Active : NotifyFocus(true)
+
+    Active --> Quitting : NotifyQuit()
+    Paused --> Quitting : NotifyQuit()
+    Unfocused --> Quitting : NotifyQuit()
+```
+
+**Key behavior:** Focus loss while Paused does NOT change state — Paused takes priority. Each transition publishes a corresponding struct event on the EventBus AND updates `Observable<AppState>`.
+
+---
+
+## Definition Registry Builder Pattern
+
+```mermaid
+sequenceDiagram
+    participant Consumer
+    participant Builder as DefinitionRegistryBuilder
+    participant Source as IDefinitionSource
+    participant Registry as DefinitionRegistry
+
+    Consumer->>Builder: new(keyExtractor)
+    Consumer->>Builder: Add(definition)
+    Consumer->>Builder: AddSource(source)
+    Builder->>Source: LoadDefinitions(list)
+    Source-->>Builder: populated list
+    Note over Builder: Validate uniqueness per key
+    Consumer->>Builder: Build()
+    Builder->>Registry: new(immutable copy)
+    Note over Builder: Builder locked — cannot reuse
+
+    Consumer->>Registry: TryGet(key, out def)
+    Registry-->>Consumer: true + definition
+```
+
+---
+
+## Save System
+
+```mermaid
+classDiagram
+    class SaveManager {
+        -ISaveSerializer serializer
+        -ISaveStorage storage
+        -List~ISaveable~ saveables
+        +Register(ISaveable)
+        +Save(string slotId)
+        +Load(string slotId) bool
+        +DeleteSlot(string slotId)
+        +SlotExists(string slotId) bool
+    }
+
+    class ISaveable {
+        <<interface>>
+        +string SaveKey
+        +CaptureState() object
+        +RestoreState(object)
+    }
+
+    class ISaveSerializer {
+        <<interface>>
+        +Serialize~T~(T) byte[]
+        +Deserialize~T~(byte[]) T
+    }
+
+    class ISaveStorage {
+        <<interface>>
+        +Exists(string) bool
+        +Write(string, byte[])
+        +Read(string) byte[]
+        +Delete(string)
+    }
+
+    class SaveSlot {
+        +string SlotId
+        +SetEntry(string, byte[])
+        +GetEntry(string) byte[]
+        +HasEntry(string) bool
+    }
+
+    SaveManager --> ISaveSerializer
+    SaveManager --> ISaveStorage
+    SaveManager --> "0..*" ISaveable
+    SaveManager ..> SaveSlot : creates during save
+```
+
+---
+
+## Debug Overlay
+
+```mermaid
+classDiagram
+    class DebugOverlay {
+        -List~IDebugSection~ sections
+        -Dictionary~string, DebugCommand~ commands
+        -List~string~ commandLog
+        +bool IsVisible
+        +Toggle()
+        +AddSection(IDebugSection)
+        +RegisterCommand(DebugCommand)
+        +ExecuteCommand(string) string
+    }
+
+    class IDebugSection {
+        <<interface>>
+        +string Title
+        +string Content()
+        +bool IsActive
+    }
+
+    class DebugCommand {
+        +string Name
+        +string Description
+        +Func~string[], string~ Handler
+    }
+
+    DebugOverlay --> "0..*" IDebugSection
+    DebugOverlay --> "0..*" DebugCommand
+```
+
+---
+
+## Toast Queue
+
+```mermaid
+sequenceDiagram
+    participant Code
+    participant TM as ToastManager
+    participant UI as Toast UI
+
+    Code->>TM: Show("Saved", 3s)
+    TM->>UI: OnShowToast(request, id=0)
+    Note over UI: Toast visible
+
+    Code->>TM: Show("Level Up!", 3s)
+    TM->>UI: OnShowToast(request, id=1)
+    Note over UI: Two toasts visible
+
+    Code->>TM: Show("Achievement!", 3s)
+    TM->>UI: OnShowToast(request, id=2)
+    Note over UI: Three toasts (max)
+
+    Code->>TM: Show("Bonus!", 3s)
+    Note over TM: Queue — max visible reached
+
+    Note over TM: Tick(3.1s)
+    TM->>UI: OnHideToast(id=0)
+    TM->>UI: OnHideToast(id=1)
+    TM->>UI: OnHideToast(id=2)
+    TM->>UI: OnShowToast("Bonus!", id=3)
+    Note over UI: Queued toast now visible
+```

@@ -1,7 +1,9 @@
 {
     "name": "Trellis.Runtime",
     "rootNamespace": "Trellis",
-    "references": [],
+    "references": [
+        "VContainer"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
