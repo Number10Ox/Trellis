@@ -184,39 +184,54 @@ Observable value wrappers that notify subscribers when their value changes. The 
 
 ---
 
-#### 2.7 State Store (`Trellis.Stores`)
+#### 2.7 State Management (`Trellis.Reactive` / `Trellis.Stores`)
 
-**Status:** Implemented
+**Status:** Implemented — Observable field pattern is the primary approach. Store/StoreActions deprecated.
 
-FLUX-inspired typed data stores that serve as the single source of truth for application state.
+##### 2.7.1 Observable Field Pattern (Preferred)
 
-**Key types:** `Store<T>`, `StoreActions<T>`, `ILoadObject<T>`, `LoadState`
+Mutable state classes with `Observable<T>` fields. Each field is independently subscribable, mutations are direct method calls, and zero GC allocations occur per state change.
+
+**Key types:** `Observable<T>`, `ReadOnlyObservable<T>`, `IReadOnlyObservable<T>`
 
 **Key design decisions:**
-- **Single-writer principle** — Each `Store<T>` is modified only through its corresponding `StoreActions<T>`. Consumers read from the store; only the designated action class writes to it. This prevents the bidirectional data flow problems seen in CU-Client.
-- **Store\<T\> exposes ReadOnlyObservable** — The store's state is an `Observable<T>` internally, exposed as `ReadOnlyObservable<T>` publicly. Subscribers react to changes; they cannot directly mutate the store.
-- **ILoadObject\<T\>** — Wraps a value with its loading state: `LoadState` enum (`None`, `Reading`, `Writing`, `Error`) plus an optional error message. This replaces the boolean-flag pattern (`isLoading`, `hasData`, `hasError`) with a single state machine. Consuming projects use `ILoadObject<T>` for any data that involves async operations (network requests, file I/O, scene loads).
-- **T is a plain data type** — Store state is a struct or class with no behavior. Systems operate on the data; the store just holds it.
-- **Scoped through VContainer** — Stores are registered in the appropriate `LifetimeScope`. Scope disposal clears all subscriptions. No static state.
-- **Reset()** — Stores provide a `Reset()` method that restores state to its initial value and notifies subscribers. Used for game restart / session teardown.
+- **Mutable state with observable fields** — State classes are long-lived mutable objects. Each piece of state that consumers need to react to is an `Observable<T>` field. Mutations are direct method calls on the state object.
+- **Per-field subscriptions** — Consumers subscribe to only the fields they care about. A selection change doesn't notify a renderer that only cares about galaxy data.
+- **Zero allocation on mutation** — Setting `Observable<T>.Value` performs an equality check and notifies subscribers. No closures, no delegates, no new objects created.
+- **Encapsulation through methods** — State classes expose mutation as named methods (`SelectSystem`, `ClearSelection`) rather than raw field setters. This keeps the intent clear and allows validation.
 
 ```csharp
-// Framework types
-public class Store<T>
+// Consuming project state class — not a framework type, just a pattern
+public sealed class ExampleState
 {
-    private readonly Observable<T> state;
-    public ReadOnlyObservable<T> State { get; }
-    // Only StoreActions<T> calls these (enforced by convention, not access modifier)
-    internal void SetState(T newState);
-    public void Reset();
+    public Observable<MyData> Data { get; } = new();
+    public Observable<int?> SelectedId { get; } = new();
+
+    public void Select(int id) => SelectedId.Value = id;
+    public void ClearSelection() => SelectedId.Value = null;
+    public void LoadData(MyData data)
+    {
+        SelectedId.SetValueSilent(null);
+        Data.Value = data;
+    }
 }
 
-public class StoreActions<T>
-{
-    private readonly Store<T> store;
-    protected void UpdateState(Func<T, T> updater);
-    protected void SetState(T newState);
-}
+// Consumer subscribes per-field
+IDisposable sub = state.SelectedId.Subscribe(OnSelectionChanged);
+```
+
+##### 2.7.2 Store/StoreActions (Deprecated)
+
+> **DEPRECATED:** `Store<T>` + `StoreActions<T>` creates GC pressure via closures, delegates, and new state objects on every mutation. Use the Observable field pattern (2.7.1) instead. Existing usages should be migrated.
+
+FLUX-inspired typed data stores. Still available for `ILoadObject<T>` and `LoadState` wrappers.
+
+**Key types:** `Store<T>` (deprecated), `StoreActions<T>` (deprecated), `ILoadObject<T>`, `LoadState`
+
+```csharp
+// DEPRECATED — allocates on every mutation
+[Obsolete] public class Store<T> { ... }
+[Obsolete] public class StoreActions<T> { ... }
 ```
 
 ---
@@ -516,7 +531,7 @@ Different boot profiles = different `LifetimeScope` subclasses. Skip the title s
 - **No game-specific types** — Framework code never references game enums, data structures, or systems.
 - **Struct constraints on generics** — State machine type parameters constrain to `struct, Enum`. Store and observable type parameters are unconstrained but documented usage favors value types on hot paths.
 - **No static mutable state** — No `static Instance`, no static event buses, no static registries. Everything flows through VContainer.
-- **No per-frame allocations in framework code** — Pre-allocate collections, pool delegates where needed, use structs for event data.
+- **No per-frame allocations in framework code** — Pre-allocate collections, pool delegates where needed, use structs for event data. Avoid patterns that allocate on every state mutation (closures, `Func<T,T>` updaters, immutable `With` patterns). Use `Observable<T>` fields for reactive state.
 - **VContainer is required** — Trellis.Runtime has a hard dependency on VContainer. This is intentional — DI is the composition spine, not an optional feature.
 
 ---

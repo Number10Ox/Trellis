@@ -6,6 +6,12 @@ namespace Trellis.Stores
     /// Base class for store action classes. Provides mutation access to a Store.
     /// Each Store should have exactly one StoreActions class that performs all mutations.
     /// </summary>
+    /// <remarks>
+    /// DEPRECATED: Prefer mutable state classes with Observable&lt;T&gt; fields instead.
+    /// UpdateState(Func&lt;T,T&gt;) allocates a closure + delegate + new state object per call.
+    /// See TDD.md Section 2.7 for migration guidance.
+    /// </remarks>
+    [Obsolete("Use mutable state classes with Observable<T> fields instead. StoreActions creates unnecessary GC allocations per mutation.")]
     public abstract class StoreActions<T>
     {
         private readonly Store<T> store;

@@ -120,6 +120,7 @@ Avoid generic `Get`/`Set` prefixes. Exceptions: standard C# idioms (`TryGetValue
   - **foreach** - Safe on arrays and `List<T>`. Avoid `foreach` on non-generic or custom `IEnumerable` implementations that allocate enumerators.
   - **Lambdas/closures** - Acceptable for setup, configuration, and infrequent callbacks. Avoid creating new lambdas with captures in per-frame or high-frequency code paths. Cache delegates in fields when a callback with captures is needed on a hot path.
   - **Structs over classes** - Prefer structs for hot-path data to avoid heap allocation. Be mindful of struct size and copying costs.
+  - **State mutation patterns** - Never use immutable state + `Func<T,T>` updaters (creates closure + delegate + new object per mutation). Use mutable state with `Observable<T>` fields. `Store<T>`/`StoreActions<T>` are **deprecated** — use the Observable field pattern from TDD.md Section 2.7.1.
 
 ---
 

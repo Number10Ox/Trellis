@@ -8,6 +8,13 @@ namespace Trellis.Stores
     /// Exposes state as ReadOnlyObservable - consumers can read and subscribe, but cannot write directly.
     /// Only StoreActions should modify the store via SetState.
     /// </summary>
+    /// <remarks>
+    /// DEPRECATED: Prefer mutable state classes with Observable&lt;T&gt; fields instead.
+    /// Store + StoreActions creates GC pressure via closures and new state objects on every mutation.
+    /// The Observable field pattern achieves the same reactivity with zero allocations per mutation.
+    /// See TDD.md Section 2.7 for migration guidance.
+    /// </remarks>
+    [Obsolete("Use mutable state classes with Observable<T> fields instead. Store/StoreActions creates unnecessary GC allocations per mutation.")]
     public class Store<T>
     {
         private readonly Observable<T> state;
