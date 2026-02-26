@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.trellis.core": "file:../../Trellis.Core",
     "com.trellis.framework": "file:../../Trellis",
     "com.unity.multiplayer.center": "1.0.1",
     "com.unity.test-framework": "1.4.5",

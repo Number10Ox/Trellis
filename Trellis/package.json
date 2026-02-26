@@ -4,7 +4,9 @@
   "displayName": "Trellis Framework",
   "description": "Lightweight game framework: state machine, system scheduler, object pooling.",
   "unity": "6000.3",
-  "dependencies": { "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.17.0" },
+  "dependencies": {
+    "com.trellis.core": "0.1.0"
+  },
   "keywords": [
     "framework",
     "state-machine",

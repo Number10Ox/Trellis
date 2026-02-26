@@ -1,0 +1,16 @@
+{
+  "name": "com.trellis.core",
+  "version": "0.1.0",
+  "displayName": "Trellis Core",
+  "description": "Pure C# foundation for Trellis: events, reactive, stores, data definitions, logging interfaces.",
+  "keywords": [
+    "framework",
+    "events",
+    "reactive",
+    "stores",
+    "definitions"
+  ],
+  "author": {
+    "name": "jedwards"
+  }
+}
