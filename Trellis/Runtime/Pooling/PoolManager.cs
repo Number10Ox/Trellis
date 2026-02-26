@@ -216,9 +216,25 @@ namespace Trellis.Pooling
         public void Dispose()
         {
             if (disposed) return;
-            disposed = true;
 
-            ReturnAll();
+            // Return all active objects before setting disposed flag,
+            // since ReturnAll() checks ThrowIfDisposed().
+            foreach (var kvp in activeObjects)
+            {
+                if (!pools.TryGetValue(kvp.Key, out GameObjectPool pool)) continue;
+
+                var active = kvp.Value;
+                for (int i = active.Count - 1; i >= 0; i--)
+                {
+                    if (active[i] != null)
+                    {
+                        pool.Return(active[i]);
+                    }
+                }
+                active.Clear();
+            }
+
+            disposed = true;
 
             foreach (var pool in pools.Values)
             {
